@@ -92,6 +92,10 @@ public class Convertor {
         return modelMapper.map(paymentDegree, PaymentDegreeMenu.class);
     }
 
+    public Inventory saveInventoryDtoToInventory(SaveInventoryDto saveInventoryDto) {
+        return modelMapper.map(saveInventoryDto, Inventory.class);
+    }
+
 
 
 

@@ -1,11 +1,11 @@
 package org.example.factory_core_manager.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @Entity
 @Getter
@@ -19,6 +19,13 @@ public class Product {
     private String name;
 
     private long amount ;
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
+    private ArrayList<InventoryAmountPair> inventoriesWithAmount;
+    public Product() {
+        this.inventoriesWithAmount = new ArrayList<>();
+    }
+
+
 
 
 

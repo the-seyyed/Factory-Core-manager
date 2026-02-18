@@ -110,5 +110,20 @@ public class ExceptionHandler {
         return new ExceptionResponse(duplicateProductNameException.getMessage() , LocalDateTime.now());
     }
 
+    @org.springframework.web.bind.annotation.ExceptionHandler(DuplicateInventoryNameException.class)
+    public ExceptionResponse duplicateInventoryName(DuplicateInventoryNameException duplicateInventoryNameException) {
+        return new ExceptionResponse(duplicateInventoryNameException.getMessage() , LocalDateTime.now());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(InventoryNotPersistedException.class)
+    public ExceptionResponse inventoryNotPersisted(InventoryNotPersistedException inventoryNotPersistedException) {
+        return new ExceptionResponse(inventoryNotPersistedException.getMessage() , LocalDateTime.now());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(ProductNotExistException.class)
+    public ExceptionResponse productNotExist(ProductNotExistException productNotExistException) {
+        return new ExceptionResponse(productNotExistException.getMessage() , LocalDateTime.now());
+    }
+
 
 }

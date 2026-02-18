@@ -2,26 +2,30 @@ package org.example.factory_core_manager.service;
 
 
 import org.example.factory_core_manager.convertor.Convertor;
+import org.example.factory_core_manager.dto.SaveInventoryAmountPair;
 import org.example.factory_core_manager.dto.SaveProductDto;
 import org.example.factory_core_manager.entity.Product;
 import org.example.factory_core_manager.exception.DuplicateProductNameException;
+import org.example.factory_core_manager.exception.ProductNotExistException;
 import org.example.factory_core_manager.repository.ProductRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 
 @Service
 public class ProductService {
 
 
+    private InventoryAmountPairService inventoryAmountPairService;
     private ProductRepository productRepository;
 
     private Convertor convertor;
 
     @Autowired
-    public ProductService(ProductRepository productRepository , Convertor convertor) {
+    public ProductService(ProductRepository productRepository , InventoryAmountPairService inventoryAmountPairService) {
         this.productRepository = productRepository;
-        this.convertor = convertor;
+        this.inventoryAmountPairService = inventoryAmountPairService;
     }
 
     public void saveNewProduct(SaveProductDto saveProductDto) {
@@ -47,6 +51,19 @@ public class ProductService {
         productRepository.updateAmount(productName,productRepository.findProductAmount(productName)+ amountToIncrease);
 
     }
+
+    public void addToRecipe(String productName , SaveInventoryAmountPair inventoryAmountPair) {
+
+        if(!checkIfProductNameExists(productName)) {
+            throw new ProductNotExistException("Product name does not exist : " + productName);
+        }
+        Product product = this.productRepository.getProductByName(productName);
+        this.inventoryAmountPairService.save(product, inventoryAmountPair);
+
+
+    }
+
+
 
 
 }

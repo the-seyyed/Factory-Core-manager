@@ -25,4 +25,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select p.amount from Product p where p.name =:productName")
     public long findProductAmount(@Param("productName") String productName);
 
+    Product getProductByName(String name);
 }
