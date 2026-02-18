@@ -1,0 +1,52 @@
+package org.example.factory_core_manager.service;
+
+
+import org.example.factory_core_manager.convertor.Convertor;
+import org.example.factory_core_manager.dto.SaveProductDto;
+import org.example.factory_core_manager.entity.Product;
+import org.example.factory_core_manager.exception.DuplicateProductNameException;
+import org.example.factory_core_manager.repository.ProductRepository;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ProductService {
+
+
+    private ProductRepository productRepository;
+
+    private Convertor convertor;
+
+    @Autowired
+    public ProductService(ProductRepository productRepository , Convertor convertor) {
+        this.productRepository = productRepository;
+        this.convertor = convertor;
+    }
+
+    public void saveNewProduct(SaveProductDto saveProductDto) {
+
+        if(checkIfProductNameExists(saveProductDto.getName())) {
+            throw new DuplicateProductNameException("Product name already exists : " + saveProductDto.getName());
+        }
+
+        Product productToSave = convertor.SaveProductDtoToProduct(saveProductDto);
+
+        productRepository.save(productToSave);
+
+    }
+
+    private boolean checkIfProductNameExists(String productName) {
+
+        return productRepository.findIfExistProductName(productName)!=null;
+
+    }
+
+    public void increaseStock(String productName , long amountToIncrease) {
+
+        productRepository.updateAmount(productName,productRepository.findProductAmount(productName)+ amountToIncrease);
+
+    }
+
+
+}

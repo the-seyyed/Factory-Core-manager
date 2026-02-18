@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>Factory Core Manager</title>
+  <style>
+    body {
+      font-family: "Vazir", sans-serif;
+      direction: rtl;
+      background: #f8fafc;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .worker-box {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .worker-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+
+    .worker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .worker-header strong {
+      font-size: 1.2rem;
+      color: #111;
+    }
+    .worker-header small {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    /* دکمه‌ها در گرید */
+    .button-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(130px,1fr));
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .worker-box button {
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+    .worker-box button:hover {
+      opacity: 0.85;
+      transform: translateY(-2px);
+    }
+
+    .checkin-btn { background-color: #22c55e; color: white; }
+    .checkout-btn { background-color: #ef4444; color: white; }
+    .history-btn { background-color: #f59e0b; color: white; }
+    .leave-start { background-color: #3b82f6; color: white; }
+    .leave-end { background-color: #9333ea; color: white; }
+
+    .date-inputs {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+    }
+    .date-inputs input {
+      flex: 1;
+      padding: 0.4rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .date-inputs button {
+      flex: 2;
+    }
+
+    .result-box {
+      background: #f9fafb;
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.9rem;
+    }
+    table, th, td {
+      border: 1px solid #e5e7eb;
+      padding: 0.6rem;
+      text-align: center;
+    }
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    .edit-btn {
+      display: block;
+      margin: 2rem auto;
+      padding: 0.8rem 2.2rem;
+      font-size: 1rem;
+      background-color: #0ea5e9;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .edit-btn:hover {
+      background-color: #0284c7;
+      transform: translateY(-3px);
+    }
+  </style>
+
+</head>
+<body>
+
+<h2>Factory Core Manager</h2>
+
+<div id="workers-container">در حال بارگذاری...</div>
+<!-- مودال نمایش جزئیات روزانه -->
+<div id="dailyModal" style="display:none; position:fixed; top:10%; right:25%; width:50%; background:#fff; border:1px solid #ccc; border-radius:8px; padding:1rem; z-index:999; box-shadow:0 0 20px rgba(0,0,0,0.2)">
+  <h3>جزییات کارهای کارگر</h3>
+
+  <label>شماره ماه (مثلاً 5 برای مرداد):</label><br>
+  <input type="number" id="daily-date" placeholder="ماه شمسی"><br><br>
+
+
+  <label>هزینه هر ساعت اضافه‌کاری:</label><br>
+  <input type="number" id="over-cost" placeholder="مثلاً 5000"><br><br>
+
+  <label>هزینه هر دقیقه کسری‌کار:</label><br>
+  <input type="number" id="under-cost" placeholder="مثلاً 200"><br><br>
+
+  <button onclick="fetchMonthlyDetails()" style="background-color:#4caf50;color:white;padding:0.5rem 1rem;border:none;border-radius:4px;cursor:pointer;">📥 دریافت</button>
+
+  <button onclick="closeModal()" style="background-color:#f44336;color:white;padding:0.5rem 1rem;border:none;border-radius:4px;cursor:pointer; margin-right:1rem;">❌ بستن</button>
+
+  <hr>
+  <div id="monthly-summary" style="margin-bottom: 1rem;"></div>
+  <div id="daily-result" style="max-height:300px; overflow:auto;"></div>
+</div>
+
+
+
+<!-- مودال نمایش جزئیات سالانه -->
+<div id="annualModal" style="display:none; position:fixed; top:15%; right:25%; width:50%; background:#fff; border:1px solid #ccc; border-radius:10px; padding:1rem; z-index:999; box-shadow:0 0 20px rgba(0,0,0,0.2)">
+  <h3>📘 جزئیات سالانه کارگر</h3>
+  <div id="annual-result" style="margin-top:1rem; font-size:0.95rem;"></div>
+  <br>
+  <button onclick="closeAnnualModal()" style="background-color:#f43f5e;color:white;padding:0.6rem 1rem;border:none;border-radius:6px;cursor:pointer;">❌ بستن</button>
+</div>
+
+
+<!-- مودال تنظیمات درجه پرداخت -->
+<div id="paymentModal" style="display:none; position:fixed; top:10%; right:25%; width:50%; background:#fff; border:1px solid #ccc; border-radius:10px; padding:1.5rem; z-index:999; box-shadow:0 0 20px rgba(0,0,0,0.2)">
+  <h3>⚙️ تنظیم درجه پرداخت</h3>
+
+  <label>مبلغ سابقه به ازای هر سال:</label><br>
+  <input type="number" id="backGroundYearsPaymentPerYear" placeholder="مثلاً 200000" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:6px; margin-top:0.3rem;"><br><br>
+
+  <label>حق تأهل:</label><br>
+  <input type="number" id="marriedPayment" placeholder="مثلاً 300000" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:6px; margin-top:0.3rem;"><br><br>
+
+  <label>حق هر فرزند:</label><br>
+  <input type="number" id="havingAChildPayment" placeholder="مثلاً 100000" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:6px; margin-top:0.3rem;"><br><br>
+
+  <label>مجموع حق فرزندان:</label><br>
+  <input type="number" id="havingChildrenPayment" placeholder="مثلاً 300000" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:6px; margin-top:0.3rem;"><br><br>
+
+  <div style="text-align:left;">
+    <button onclick="savePaymentDegree()" style="background-color:#22c55e;color:white;padding:0.6rem 1.2rem;border:none;border-radius:8px;cursor:pointer;">💾 ذخیره تغییرات</button>
+    <button onclick="closePaymentModal()" style="background-color:#ef4444;color:white;padding:0.6rem 1.2rem;border:none;border-radius:8px;cursor:pointer; margin-right:0.6rem;">❌ بستن</button>
+  </div>
+</div>
+
+
+<!-- مودال ثبت تراکنش جدید -->
+<div id="transactionModal" style="display:none; position:fixed; top:10%; right:25%; width:50%; background:#fff; border:1px solid #ccc; border-radius:10px; padding:1.5rem; z-index:999; box-shadow:0 0 20px rgba(0,0,0,0.2)">
+  <h3>➕ ثبت تراکنش جدید</h3>
+
+  <label>نوع تراکنش:</label><br>
+  <select id="transaction-type">
+    <option value="LOAN">وام</option>
+    <option value="ADVANCE">پیش‌پرداخت</option>
+    <option value="LEAVE">مرخصی</option>
+    <option value="BACK_LOAN">بازپرداخت وام</option>
+    <option value="BACK_ADVANCE">بازپرداخت پیش‌پرداخت</option>
+  </select>
+
+
+  <br><br>
+  <label>مقدار:</label><br>
+  <input type="number" id="transaction-amount" placeholder="مثلاً 500000" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:6px; margin-top:0.3rem;">
+
+  <br><br>
+  <label>توضیحات:</label><br>
+  <textarea id="transaction-desc" rows="3" placeholder="توضیح بنویسید..." style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:6px; margin-top:0.3rem;"></textarea>
+
+  <br><br>
+  <div style="text-align:left;">
+    <button onclick="saveTransaction()" style="background-color:#22c55e;color:white;padding:0.6rem 1.2rem;border:none;border-radius:8px;cursor:pointer;">💾 ثبت</button>
+    <button onclick="closeTransactionModal()" style="background-color:#ef4444;color:white;padding:0.6rem 1.2rem;border:none;border-radius:8px;cursor:pointer; margin-right:0.6rem;">❌ بستن</button>
+  </div>
+</div>
+
+
+
+
+
+
+
+<script>
+
+  async function loadWorkers() {
+    try {
+      const res = await fetch('workerManaging/get_homepage_workers');
+      if (!res.ok) throw new Error('خطا در دریافت اطلاعات');
+      const workers = await res.json();
+
+      const container = document.getElementById("workers-container");
+      container.innerHTML = '';
+
+
+
+      workers.forEach(worker => {
+        const div = document.createElement("div");
+        div.className = "worker-box";
+        const fullName = `${worker.firstName} ${worker.lastName}`;
+        const workerId = worker.id;
+
+        div.innerHTML = `
+  <div class="worker-header">
+    <strong>${fullName}</strong>
+    <small>آیدی: ${worker.id || 'نامشخص'}</small>
+  </div>
+
+  <div class="button-group">
+    <button class="history-btn" onclick="showDailyDetails(${workerId})">📊 جزییات کاری</button>
+    <button class="checkin-btn" onclick="checkIn(${workerId})">ثبت ورود</button>
+    <button class="checkout-btn" onclick="checkOut(${workerId})">ثبت خروج</button>
+    <button class="leave-start" onclick="startLeave(${workerId})">✅ شروع مرخصی</button>
+    <button class="leave-end" onclick="endLeave(${workerId})">🛑 اتمام مرخصی</button>
+    <button class="history-btn" onclick="showAnnualDetail(${workerId})">📘 جزئیات سالانه</button>
+    <button class="checkin-btn" style="background-color:#0ea5e9;" onclick="showTransactionModal(${workerId})">➕ ثبت تراکنش</button>
+    <button class="history-btn" onclick="showTransactions(${workerId})">💰 مشاهده تراکنش‌ها</button>
+
+
+
+  </div>
+
+  <div class="date-inputs">
+    <input type="text" placeholder="سال" id="year-${workerId}">
+    <input type="text" placeholder="ماه" id="month-${workerId}">
+    <input type="text" placeholder="روز" id="day-${workerId}">
+    <button class="history-btn" onclick="getHistory(${workerId})">📅 گرفتن سابقه</button>
+  </div>
+
+  <div id="result-${workerId}" class="result-box"></div>
+`;
+
+        container.appendChild(div);
+      });
+
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById("workers-container").innerText = "❌ خطا در دریافت اطلاعات کارگران.";
+    }
+  }
+
+  function checkIn(workerId) {
+    fetch(`/attendanceManaging/check_in_attendance/${workerId}`, { method: 'POST' })
+            .then(res => res.ok ? res.text() : Promise.reject())
+            .then(msg => alert(`✅ ورود ثبت شد: ${msg}`))
+            .catch(() => alert("❌ خطا در ثبت ورود"));
+  }
+
+  function checkOut(workerId) {
+    fetch(`/attendanceManaging/check_out_attendance/${workerId}`, { method: 'POST' })
+            .then(res => res.ok ? res.text() : Promise.reject())
+            .then(msg => alert(`✅ خروج ثبت شد: ${msg}`))
+            .catch(() => alert("❌ خطا در ثبت خروج"));
+  }
+  function fetchMonthlyDetails() {
+    const month = parseInt(document.getElementById("daily-date").value);
+    const over = parseFloat(document.getElementById("over-cost").value || "0");
+    const under = parseFloat(document.getElementById("under-cost").value || "0");
+
+    if (!month || isNaN(month)) {
+      alert("لطفاً شماره ماه شمسی را وارد کنید (مثلاً 5 برای مرداد)");
+      return;
+    }
+
+    const body = {
+      overTimeCostPerHour: over,
+      underWorkCostPerMinute: under
+    };
+
+    fetch(`/attendanceManaging/getMonthlyDetailedPayment/${selectedWorkerId}/${month}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    })
+            .then(res => res.json())
+            .then(data => {
+              if (!data || !data.dailyWorkedDetailedInfoList || data.dailyWorkedDetailedInfoList.length === 0) {
+                document.getElementById("monthly-summary").innerHTML = "⛔ هیچ داده‌ای یافت نشد.";
+                document.getElementById("daily-result").innerHTML = "";
+                return;
+              }
+
+              // ✅ جدول خلاصه ماهانه
+              const summaryHTML = `
+        <table>
+          <tr>
+            <th>مجموع درآمد</th>
+            <th>کار رسمی (دقیقه)</th>
+            <th>اضافه‌کاری (دقیقه)</th>
+            <th>کسری‌کار (دقیقه)</th>
+            <th>هزینه رسمی</th>
+            <th>هزینه اضافه‌کاری</th>
+            <th>هزینه کسری‌کار</th>
+            <th>حق اولاد</th>
+            <th>حق ازدواج</th>
+            <th>حق سابقه</th>
+          </tr>
+          <tr>
+            <td>${data.allAmount || 0}</td>
+            <td>${data.allOfficialWorkedTime || 0}</td>
+            <td>${data.allOverWorkedTime || 0}</td>
+            <td>${data.allUnderWorkedTime || 0}</td>
+            <td>${data.allOfficialWorkedTimeCost || 0}</td>
+            <td>${data.allOverWorkedTimeCost || 0}</td>
+            <td>${data.allUnderWorkedTimeCost || 0}</td>
+            <td>${data.havingChildrenPayment || 0}</td>
+            <td>${data.marriagePayment || 0}</td>
+            <td>${data.backGroundPayment || 0}</td>
+          </tr>
+        </table>
+      `;
+              document.getElementById("monthly-summary").innerHTML = summaryHTML;
+
+              // ✅ جدول جزئیات روزانه
+              let table = `<table>
+        <tr>
+          <th>تاریخ</th>
+          <th>ورود</th>
+          <th>خروج</th>
+          <th>کار رسمی</th>
+          <th>اضافه‌کاری</th>
+          <th>کسری‌کار</th>
+          <th>درآمد روز</th>
+        </tr>`;
+
+              data.dailyWorkedDetailedInfoList.forEach(item => {
+                const date = `${item.customPersianDate.year}/${String(item.customPersianDate.month).padStart(2, '0')}/${String(item.customPersianDate.day).padStart(2, '0')}`;
+                table += `
+          <tr>
+            <td>${date}</td>
+            <td>${item.checkInTime ? item.checkInTime.join(":") : "-"}</td>
+            <td>${item.checkOutTime ? item.checkOutTime.join(":") : "-"}</td>
+            <td>${item.officialWorkedMinute || 0}</td>
+            <td>${item.overWorkedMinute || 0}</td>
+            <td>${item.underWorkedMinute || 0}</td>
+            <td>${item.incomeOfDay || 0}</td>
+          </tr>`;
+              });
+
+              table += "</table>";
+              document.getElementById("daily-result").innerHTML = table;
+            })
+            .catch(err => {
+              console.error(err);
+              alert("❌ خطا در دریافت اطلاعات ماهانه");
+            });
+  }
+
+
+  let selectedWorkerId = null;
+
+  function showDailyDetails(workerId) {
+    selectedWorkerId = workerId;
+    document.getElementById("daily-date").value = "";
+    document.getElementById("daily-result").innerHTML = "";
+    document.getElementById("dailyModal").style.display = "block";
+  }
+
+  function closeModal() {
+    document.getElementById("dailyModal").style.display = "none";
+  }
+
+  function startLeave(workerId) {
+    fetch(`/attendanceManaging/vacationIn/${workerId}`, { method: 'POST' })
+            .then(res => res.ok ? res.text() : Promise.reject())
+            .then(msg => alert(`✅ مرخصی شروع شد: ${msg}`))
+            .catch(() => alert("❌ خطا در شروع مرخصی"));
+  }
+
+  function endLeave(workerId) {
+    fetch(`/attendanceManaging/vacationOut/${workerId}`, { method: 'POST' })
+            .then(res => res.ok ? res.text() : Promise.reject())
+            .then(msg => alert(`🛑 مرخصی به پایان رسید: ${msg}`))
+            .catch(() => alert("❌ خطا در پایان مرخصی"));
+  }
+
+
+  function fetchDailyDetails() {
+    const date = document.getElementById("daily-date").value;
+    const over = parseFloat(document.getElementById("over-cost").value || "0");
+    const under = parseFloat(document.getElementById("under-cost").value || "0");
+
+    if (!date) {
+      alert("لطفاً تاریخ را وارد کنید");
+      return;
+    }
+
+    const body = {
+      overTimeCostPerHour: over,
+      underWorkCostPerMinute: under
+    };
+
+    fetch(`/attendanceManaging/getAllDetailedWorkedInfoBySpecialTime/${selectedWorkerId}/${date}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    })
+            .then(res => res.json())
+            .then(data => {
+              if (!data || !data.dailyWorkedDetailedInfoList || data.dailyWorkedDetailedInfoList.length === 0) {
+                document.getElementById("monthly-summary").innerHTML = "⛔ هیچ داده‌ای یافت نشد.";
+                document.getElementById("daily-result").innerHTML = "";
+                return;
+              }
+
+              const summaryHTML = `
+        <table>
+          <tr>
+            <th>مجموع درآمد</th>
+            <th>کار رسمی (دقیقه)</th>
+            <th>اضافه‌کاری (دقیقه)</th>
+            <th>کسری‌کار (دقیقه)</th>
+            <th>هزینه رسمی</th>
+            <th>هزینه اضافه‌کاری</th>
+            <th>هزینه کسری‌کار</th>
+          </tr>
+          <tr>
+            <td>${data.allAmount || 0}</td>
+            <td>${data.allOfficialWorkedTime || 0}</td>
+            <td>${data.allOverWorkedTime || 0}</td>
+            <td>${data.allUnderWorkedTime || 0}</td>
+            <td>${data.allOfficialWorkedTimeCost || 0}</td>
+            <td>${data.allOverWorkedTimeCost || 0}</td>
+            <td>${data.allUnderWorkedTimeCost || 0}</td>
+          </tr>
+        </table>`;
+              document.getElementById("monthly-summary").innerHTML = summaryHTML;
+
+              let table = `<table>
+        <tr>
+          <th>تاریخ</th><th>ورود</th><th>خروج</th>
+          <th>کار رسمی</th><th>اضافه‌کاری</th><th>کسری‌کار</th>
+          <th>درآمد</th>
+        </tr>`;
+
+              data.dailyWorkedDetailedInfoList.forEach(item => {
+                const date = `${item.customPersianDate.year}/${String(item.customPersianDate.month).padStart(2, '0')}/${String(item.customPersianDate.day).padStart(2, '0')}`;
+                table += `<tr>
+          <td>${date}</td>
+          <td>${item.checkInTime ? item.checkInTime.join(":") : "-"}</td>
+          <td>${item.checkOutTime ? item.checkOutTime.join(":") : "-"}</td>
+          <td>${item.officialWorkedMinute || 0} دقیقه</td>
+          <td>${item.overWorkedMinute || 0} دقیقه</td>
+          <td>${item.underWorkedMinute || 0} دقیقه</td>
+          <td>${item.incomeOfDay || 0}</td>
+        </tr>`;
+              });
+
+              table += "</table>";
+              document.getElementById("daily-result").innerHTML = table;
+            })
+            .catch(err => {
+              console.error(err);
+              alert("❌ خطا در دریافت اطلاعات روزانه");
+            });
+  }
+
+  let selectedAnnualWorkerId = null;
+
+  function showAnnualDetail(workerId) {
+    selectedAnnualWorkerId = workerId;
+    document.getElementById("annualModal").style.display = "block";
+    document.getElementById("annual-result").innerHTML = "⏳ در حال دریافت اطلاعات...";
+
+    fetch(`/AnnualDetails/getAnnualDetail/${workerId}`)
+            .then(res => res.json())
+            .then(data => {
+              if (!data) {
+                document.getElementById("annual-result").innerHTML = "⛔ اطلاعاتی یافت نشد.";
+                return;
+              }
+
+              const html = `
+        <table style="width:100%; border-collapse:collapse;">
+          <tr style="background-color:#f1f5f9;">
+            <th style="padding:0.6rem; border:1px solid #ddd;">مرخصی‌های سالانه</th>
+            <th style="padding:0.6rem; border:1px solid #ddd;">جمع مساعده‌ها</th>
+            <th style="padding:0.6rem; border:1px solid #ddd;">جمع وام‌ها</th>
+          </tr>
+          <tr>
+            <td style="text-align:center; border:1px solid #ddd;">${data.totalLeaves ?? 0}</td>
+            <td style="text-align:center; border:1px solid #ddd;">${data.totalAdvance ?? 0}</td>
+            <td style="text-align:center; border:1px solid #ddd;">${data.totalLoan ?? 0}</td>
+          </tr>
+        </table>
+      `;
+
+              document.getElementById("annual-result").innerHTML = html;
+            })
+            .catch(err => {
+              console.error(err);
+              document.getElementById("annual-result").innerHTML = "❌ خطا در دریافت اطلاعات سالانه.";
+            });
+  }
+
+  function closeAnnualModal() {
+    document.getElementById("annualModal").style.display = "none";
+  }
+
+  let selectedTransactionWorkerId = null;
+
+  function showTransactionModal(workerId) {
+    selectedTransactionWorkerId = workerId;
+    document.getElementById("transactionModal").style.display = "block";
+    document.getElementById("transaction-type").value = "";
+    document.getElementById("transaction-amount").value = "";
+    document.getElementById("transaction-desc").value = "";
+  }
+
+  function closeTransactionModal() {
+    document.getElementById("transactionModal").style.display = "none";
+  }
+
+  function saveTransaction() {
+    const type = document.getElementById("transaction-type").value;
+    const amount = parseFloat(document.getElementById("transaction-amount").value);
+    const description = document.getElementById("transaction-desc").value.trim();
+
+    if (!type || !amount || isNaN(amount)) {
+      alert("⚠️ لطفاً نوع تراکنش و مقدار را به درستی وارد کنید.");
+      return;
+    }
+
+    const body = {
+      type: type,
+      amount: amount,
+      description: description
+    };
+
+    fetch(`/transaction/addNewTransAction/${selectedTransactionWorkerId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    })
+            .then(res => {
+              if (!res.ok) throw new Error("HTTP error " + res.status);
+              return res.text();
+            })
+            .then(() => {
+              alert("✅ تراکنش با موفقیت ثبت شد.");
+              closeTransactionModal();
+            })
+            .catch(err => {
+              console.error("Error saving transaction:", err);
+              alert("❌ خطا در ثبت تراکنش.");
+            });
+  }
+
+  function showTransactions(workerId) {
+    const resultDiv = document.getElementById(`result-${workerId}`);
+    resultDiv.innerHTML = "⏳ در حال دریافت تراکنش‌ها...";
+
+    fetch(`/transaction/getAllTransactions/${workerId}`)
+            .then(res => {
+              if (!res.ok) throw new Error("خطا در دریافت اطلاعات تراکنش‌ها");
+              return res.json();
+            })
+            .then(data => {
+              if (!data || data.length === 0) {
+                resultDiv.innerHTML = "📭 هیچ تراکنشی ثبت نشده است.";
+                return;
+              }
+
+              let html = `
+        <table>
+          <tr>
+            <th>تاریخ (شمسی)</th>
+            <th>نوع تراکنش</th>
+            <th>مبلغ</th>
+            <th>توضیحات</th>
+          </tr>
+      `;
+
+              data.forEach(tx => {
+                // ✅ ساخت رشته تاریخ شمسی
+                let persianDate = "-";
+                if (tx.persianDate) {
+                  const y = tx.persianDate.year;
+                  const m = String(tx.persianDate.month).padStart(2, "0");
+                  const d = String(tx.persianDate.day).padStart(2, "0");
+                  persianDate = `${y}/${m}/${d}`;
+                }
+
+                html += `
+          <tr>
+            <td>${persianDate}</td>
+            <td>${tx.type || "-"}</td>
+            <td>${tx.amount || 0}</td>
+            <td>${tx.description || "-"}</td>
+          </tr>
+        `;
+              });
+
+              html += "</table>";
+              resultDiv.innerHTML = html;
+            })
+            .catch(err => {
+              console.error(err);
+              resultDiv.innerHTML = "❌ خطا در دریافت تراکنش‌ها.";
+            });
+  }
+
+  function openPaymentModal() {
+    document.getElementById("paymentModal").style.display = "block";
+    loadPaymentDegree(); // موقع باز شدن، مقادیر فعلی رو بگیر
+  }
+
+  function closePaymentModal() {
+    document.getElementById("paymentModal").style.display = "none";
+  }
+
+  // 🟢 گرفتن مقدار فعلی از سرور
+  function loadPaymentDegree() {
+    fetch("/PaymentDegreeManaging/getThePaymentDegree")
+            .then(res => {
+              if (!res.ok) throw new Error("خطا در دریافت اطلاعات درجه پرداخت");
+              return res.json();
+            })
+            .then(data => {
+              document.getElementById("backGroundYearsPaymentPerYear").value = data.backGroundYearsPaymentPerYear || 0;
+              document.getElementById("marriedPayment").value = data.marriedPayment || 0;
+              document.getElementById("havingAChildPayment").value = data.havingAChildPayment || 0;
+              document.getElementById("havingChildrenPayment").value = data.havingChildrenPayment || 0;
+            })
+            .catch(err => {
+              console.error(err);
+              alert("❌ خطا در دریافت اطلاعات درجه پرداخت");
+            });
+  }
+
+  // 🟡 ویرایش و ارسال به سرور
+  function savePaymentDegree() {
+    const payload = {
+      backGroundYearsPaymentPerYear: parseFloat(document.getElementById("backGroundYearsPaymentPerYear").value || "0"),
+      marriedPayment: parseFloat(document.getElementById("marriedPayment").value || "0"),
+      havingAChildPayment: parseFloat(document.getElementById("havingAChildPayment").value || "0"),
+      havingChildrenPayment: parseFloat(document.getElementById("havingChildrenPayment").value || "0")
+    };
+
+    fetch("/PaymentDegreeManaging/editThePaymentDegree", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+            .then(res => {
+              if (!res.ok) throw new Error("خطا در ذخیره تنظیمات");
+              alert("✅ تنظیمات با موفقیت ذخیره شد");
+              closePaymentModal();
+            })
+            .catch(err => {
+              console.error(err);
+              alert("❌ خطا در ذخیره تنظیمات درجه پرداخت");
+            });
+  }
+  async function getHistory(workerId) {
+    const year = document.getElementById(`year-${workerId}`).value.trim();
+    const month = document.getElementById(`month-${workerId}`).value.trim();
+    const day = document.getElementById(`day-${workerId}`).value.trim();
+    const resultDiv = document.getElementById(`result-${workerId}`);
+
+    if (!year || !month || !day) {
+      alert("لطفاً سال، ماه و روز را وارد کنید.");
+      return;
+    }
+
+    const persianDate = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+    resultDiv.innerHTML = "⏳ در حال دریافت اطلاعات حضور...";
+
+    try {
+      const res = await fetch(`/attendanceManaging/getAllAttendanceInfoForSpecialTimeAndWorker/${workerId}/${persianDate}`);
+      if (!res.ok) throw new Error("خطا در دریافت اطلاعات");
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        resultDiv.innerHTML = "📭 هیچ داده‌ای یافت نشد.";
+        return;
+      }
+
+      let table = `
+      <table>
+        <tr>
+          <th>تاریخ</th>
+          <th>ورود</th>
+          <th>خروج</th>
+          <th>شروع مرخصی</th>
+          <th>پایان مرخصی</th>
+        </tr>`;
+
+      data.forEach(item => {
+        const pd = item.persianDate || item.customPersianDate || {};
+        const persianDateStr = `${pd.year}/${String(pd.month).padStart(2, "0")}/${String(pd.day).padStart(2, "0")}`;
+        table += `
+        <tr>
+          <td>${persianDateStr}</td>
+          <td>${item.checkInTime ? item.checkInTime.join(":") : "-"}</td>
+          <td>${item.checkOutTime ? item.checkOutTime.join(":") : "-"}</td>
+          <td>${item.vacationInTime ? item.vacationInTime.join(":") : "-"}</td>
+          <td>${item.vacationOutTime ? item.vacationOutTime.join(":") : "-"}</td>
+        </tr>`;
+      });
+
+      table += "</table>";
+      resultDiv.innerHTML = table;
+
+    } catch (err) {
+      console.error(err);
+      resultDiv.innerHTML = "❌ خطا در دریافت اطلاعات حضور.";
+    }
+  }
+
+
+
+
+
+  loadWorkers();
+</script>
+
+<!-- دکمه رفتن به صفحه ویرایش -->
+<br><br>
+<button class="edit-btn" onclick="location.href='/edit_workers.html'">✏️ ویرایش کارمندان</button>
+<button class="edit-btn" onclick="openPaymentModal()">⚙️ تنظیم درجه پرداخت</button>
+
+</body>
+</html>

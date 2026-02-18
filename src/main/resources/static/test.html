@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مدیریت سرویس‌ها - Elite Service Hub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --purple-main: #8c52ff;
+            --purple-dark: #5c3dbb;
+            --purple-light: #b89aff;
+            --bg-dark: #1e1e2f;
+            --bg-card: #2c2c44;
+            --text-light: #eee;
+            --text-muted: #bbb;
+            --border-gray: #444466;
+            --hover-purple: #a475ff;
+
+            --text-primary: #eee;
+            --bg-primary: #1e1e2f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .admin-dashboard {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 350px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-gray);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 25px;
+            height: 100vh;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        .sidebar-header h2 {
+            color: var(--purple-main);
+            font-weight: 700;
+            font-size: 1.9rem;
+            margin-bottom: 3rem;
+            user-select: none;
+        }
+
+        .sidebar-header .role {
+            color: var(--purple-light);
+            font-weight: 600;
+            font-size: 1rem;
+            user-select: none;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.15rem;
+            padding: 14px 20px;
+            border-radius: 8px;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            display: block;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background-color: var(--purple-main);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #logout {
+            margin-top: auto;
+            font-weight: 700;
+            color: var(--purple-main);
+            border: 2px solid var(--purple-main);
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            user-select: none;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            display: block;
+        }
+
+        #logout:hover {
+            background-color: var(--purple-main);
+            color: white;
+            cursor: pointer;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background-color: var(--purple-main);
+            border-radius: 12px;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 40px 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-y: auto;
+            box-sizing: border-box;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-width: 0;
+            user-select: none;
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .main-header h1 {
+            color: var(--purple-main);
+            font-weight: 700;
+            font-size: 2.4rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .user-info i {
+            font-size: 1.8rem;
+            color: var(--purple-main);
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 28px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 15px;
+            padding: 28px 35px;
+            flex: 1 1 230px;
+            color: var(--text-light);
+            box-shadow: 0 0 18px rgba(140, 82, 255, 0.3);
+            transition: transform 0.3s ease;
+            cursor: default;
+            user-select: none;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+        }
+
+        .card h3 {
+            margin-bottom: 14px;
+            color: var(--purple-light);
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        thead th {
+            background-color: var(--purple-dark);
+            color: #fff;
+            font-weight: 700;
+            padding: 16px 22px;
+            text-align: left;
+            font-size: 1rem;
+            user-select: none;
+        }
+
+        tbody td {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border-gray);
+            font-size: 1rem;
+            user-select: text;
+        }
+
+        tbody tr:hover {
+            background-color: var(--hover-purple);
+            cursor: pointer;
+        }
+
+        .service-form-section {
+            background-color: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px 35px;
+            box-shadow: 0 0 18px rgba(140, 82, 255, 0.3);
+            max-width: 700px;
+            margin-bottom: 50px;
+        }
+
+        .service-form-section h2 {
+            color: var(--purple-main);
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 1.8rem;
+            user-select: none;
+        }
+
+        #serviceForm {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--purple-light);
+            user-select: none;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-gray);
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: var(--text-light);
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.25s ease;
+            user-select: text;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            border-color: var(--purple-main);
+            outline: none;
+        }
+
+        #saveBtn {
+            background-color: var(--purple-main);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease;
+            width: fit-content;
+        }
+
+        #saveBtn:hover {
+            background-color: var(--hover-purple);
+        }
+
+        #cancelEditBtn {
+            background-color: transparent;
+            border: 2px solid var(--purple-main);
+            color: var(--purple-main);
+            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            width: fit-content;
+        }
+
+        #cancelEditBtn:hover {
+            background-color: var(--purple-main);
+            color: white;
+        }
+
+        table button.edit-btn,
+        table button.delete-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px 10px;
+            user-select: none;
+            transition: color 0.25s ease;
+        }
+
+        table button.edit-btn:hover {
+            color: var(--purple-main);
+        }
+
+        table button.delete-btn {
+            color: #e74c3c;
+        }
+
+        table button.delete-btn:hover {
+            color: #c0392b;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background-color: var(--purple-main);
+            border-radius: 12px;
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 9px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: var(--bg-card);
+            border-radius: 12px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background-color: var(--purple-main);
+            border-radius: 12px;
+            border: 2px solid var(--bg-card);
+        }
+
+        .services-list-section h2 {
+            margin-bottom: 10px;
+        }
+
+        .role {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+            }
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                padding: 15px 25px;
+                overflow-x: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-gray);
+            }
+            .sidebar-header h2 {
+                font-size: 1.4rem;
+                margin-bottom: 0;
+                margin-right: 35px;
+                white-space: nowrap;
+            }
+            .sidebar-header .role {
+                display: none;
+            }
+            .sidebar-nav {
+                flex-direction: row;
+                gap: 14px;
+                padding-right: 0;
+            }
+            .sidebar-nav a {
+                padding: 9px 14px;
+                font-size: 1rem;
+                white-space: nowrap;
+            }
+            #logout {
+                margin-left: auto;
+                margin-top: 0;
+                padding: 9px 14px;
+                font-size: 1rem;
+            }
+            .main-content {
+                padding: 20px 25px;
+                max-width: 100%;
+            }
+            .stats-cards {
+                flex-direction: column;
+                gap: 24px;
+            }
+            .card {
+                flex: 1 1 100%;
+            }
+            .service-form-section {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-dashboard">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Elite Service Hub</h2>
+            <span class="role">پنل مدیریت</span>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> داشبورد</a></li>
+                <li><a href="manage-users.html"><i class="fas fa-users"></i> مدیریت کاربران</a></li>
+                <li><a href="#" class="active"><i class="fas fa-cogs"></i> مدیریت خدمات</a></li>
+                <li><a href="manage-under-services.html"><i class="fas fa-cogs"></i> مدیریت زیرخدمات</a></li>
+                <li><a href="reports.html"><i class="fas fa-file-alt"></i> گزارش‌ها</a></li>
+                <li><a href="#" id="logout"><i class="fas fa-sign-out-alt"></i> خروج</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="main-header">
+            <h1>مدیریت خدمات</h1>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i> <span>ادمین</span>
+            </div>
+        </header>
+
+        <!-- New stats-cards section -->
+        <section class="stats-cards"></section>
+
+        <section class="service-form-section">
+            <h2>ایجاد / ویرایش سرویس</h2>
+            <form id="serviceForm">
+                <input type="hidden" id="serviceId" />
+                <div class="form-group">
+                    <label for="serviceName">نام سرویس</label>
+                    <input type="text" id="serviceName" placeholder="نام سرویس را وارد کنید" required />
+                </div>
+                <div class="form-group">
+                    <label for="serviceDescription">توضیحات</label>
+                    <textarea id="serviceDescription" placeholder="توضیحات را وارد کنید" rows="3" required></textarea>
+                </div>
+                <button type="submit" id="saveBtn">افزودن سرویس</button>
+                <button type="button" id="cancelEditBtn" style="display:none; margin-left: 10px;">لغو ویرایش</button>
+            </form>
+        </section>
+
+        <section class="services-list-section" style="margin-top: 50px;">
+            <h2>تمام سرویس‌ها</h2>
+            <table id="servicesTable">
+                <thead>
+                <tr>
+                    <th>شناسه</th>
+                    <th>نام سرویس</th>
+                    <th>توضیحات</th>
+                    <th>عملیات</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- به صورت داینامیک پر می‌شود -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const logoutBtn = document.getElementById('logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                window.location.href = '/loginPage/main.html';
+            });
+        }
+
+        const serviceForm = document.getElementById('serviceForm');
+        const serviceIdInput = document.getElementById('serviceId');
+        const serviceNameInput = document.getElementById('serviceName');
+        const serviceDescriptionInput = document.getElementById('serviceDescription');
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const servicesTableBody = document.querySelector('#servicesTable tbody');
+        const statsCardsSection = document.querySelector('.stats-cards');
+
+        // Fetch services from backend
+        async function getServices() {
+            const response = await fetch('/api/services');
+            return await response.json();
+        }
+
+        // Add a new service
+        async function addService(service) {
+            const response = await fetch('/api/services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(service)
+            });
+            return await response.json();
+        }
+
+        // Update existing service
+        async function updateService(id, service) {
+            await fetch(`/api/services/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(service)
+            });
+        }
+
+        // Delete a service
+        async function deleteService(id) {
+            await fetch(`/api/services/${id}`, {
+                method: 'DELETE'
+            });
+        }
+
+        // Fetch stats from backend and render stats cards
+        async function renderStatsCards() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) {
+                    // Instead of throw, just set error message and return
+                    statsCardsSection.innerHTML = `<p style="color: #e74c3c; text-align:center;">خطا در بارگذاری آمار</p>`;
+                    return;
+                }
+                const statsData = await response.json();
+
+                statsCardsSection.innerHTML = '';
+                if (!statsData.length) {
+                    statsCardsSection.innerHTML = `<p style="color: var(--text-muted); text-align:center;">آمار موجود نیست.</p>`;
+                    return;
+                }
+
+                statsData.forEach(stat => {
+                    const card = document.createElement('div');
+                    card.classList.add('card');
+                    card.innerHTML = `<h3>${stat.title}</h3><p>${stat.value}</p>`;
+                    statsCardsSection.appendChild(card);
+                });
+            } catch (error) {
+                statsCardsSection.innerHTML = `<p style="color: #e74c3c; text-align:center;">خطا در بارگذاری آمار</p>`;
+                console.error(error);
+            }
+        }
+
+
+        // Render services in the table
+        async function renderServicesTable() {
+            const services = await getServices();
+            servicesTableBody.innerHTML = '';
+
+            if (services.length === 0) {
+                servicesTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">سرویسی موجود نیست.</td></tr>`;
+                return;
+            }
+
+            services.forEach(service => {
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+            <td>${service.id}</td>
+            <td>${service.name}</td>
+            <td>${service.description}</td>
+            <td>
+              <button class="edit-btn" data-id="${service.id}" title="ویرایش"><i class="fas fa-edit"></i></button>
+              <button class="delete-btn" data-id="${service.id}" title="حذف" style="color:#e74c3c;"><i class="fas fa-trash"></i></button>
+            </td>
+          `;
+
+                servicesTableBody.appendChild(tr);
+            });
+
+            // Add event listeners for edit buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    startEditService(id);
+                });
+            });
+
+            // Add event listeners for delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    if (!confirm('آیا مطمئن هستید که می‌خواهید این سرویس را حذف کنید؟')) return;
+                    await deleteService(id);
+                    await renderServicesTable();
+                    await renderStatsCards();
+                    if (serviceIdInput.value === id) {
+                        resetForm();
+                    }
+                });
+            });
+        }
+
+        // Start editing a service
+        async function startEditService(id) {
+            const services = await getServices();
+            const service = services.find(s => s.id === id);
+            if (!service) return;
+
+            serviceIdInput.value = service.id;
+            serviceNameInput.value = service.name;
+            serviceDescriptionInput.value = service.description;
+            saveBtn.textContent = 'به‌روزرسانی سرویس';
+            cancelEditBtn.style.display = 'inline-block';
+        }
+
+        // Reset the form to initial state
+        function resetForm() {
+            serviceIdInput.value = '';
+            serviceNameInput.value = '';
+            serviceDescriptionInput.value = '';
+            saveBtn.textContent = 'افزودن سرویس';
+            cancelEditBtn.style.display = 'none';
+        }
+
+        // Handle form submission
+        serviceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = serviceIdInput.value;
+            const name = serviceNameInput.value.trim();
+            const description = serviceDescriptionInput.value.trim();
+
+            if (!name || !description) return alert('لطفاً همه فیلدها را پر کنید.');
+
+            if (id) {
+                await updateService(id, { name, description });
+                alert('سرویس با موفقیت به‌روزرسانی شد.');
+            } else {
+                await addService({ name, description });
+                alert('سرویس با موفقیت اضافه شد.');
+            }
+
+            await renderServicesTable();
+            await renderStatsCards();
+            resetForm();
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            resetForm();
+        });
+
+        // Initial render calls
+        renderServicesTable();
+        renderStatsCards();
+    });
+</script>
+</body>
+</html>

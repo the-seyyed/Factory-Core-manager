@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>مدیریت کارمندان</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      background: #f0f0f0;
+      padding: 2rem;
+    }
+
+    table {
+      width: 100%;
+      background: white;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e0e0e0;
+    }
+
+    button {
+      padding: 0.4rem 1rem;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d32f2f;
+    }
+
+    form {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    input, select {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      width: 200px;
+    }
+
+    .submit-btn {
+      background-color: #4caf50;
+    }
+
+    .submit-btn:hover {
+      background-color: #388e3c;
+    }
+  </style>
+</head>
+<body>
+
+<h2>مدیریت کارمندان</h2>
+
+<table id="workers-table">
+  <thead>
+  <tr>
+    <th>نام</th>
+    <th>نام خانوادگی</th>
+    <th>کد</th>
+    <th>سن</th>
+    <th>سابقه</th>
+    <th>فرزند</th>
+    <th>جنسیت</th>
+    <th>تاهل</th>
+    <th>حذف</th>
+  </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h3>افزودن کارمند جدید</h3>
+
+<form id="add-worker-form">
+  <input name="firstName" placeholder="نام" required>
+  <input name="lastName" placeholder="نام خانوادگی" required>
+  <input name="workerCode" placeholder="کد پرسنلی" required>
+  <input name="dateOfBirth" type="date" required>
+  <input name="backGroundYears" type="number" placeholder="سابقه" required>
+  <input name="childrenNumber" type="number" placeholder="تعداد فرزند" required>
+  <select name="gender" required>
+    <option value="">جنسیت</option>
+    <option value="MALE">مرد</option>
+    <option value="FEMALE">زن</option>
+  </select>
+  <select name="married" required>
+    <option value="">تاهل</option>
+    <option value="true">متاهل</option>
+    <option value="false">مجرد</option>
+  </select>
+  <br>
+  <button class="submit-btn" type="submit">➕ ثبت کارمند</button>
+</form>
+
+<script>
+  function loadWorkers () {
+    fetch('/workerManaging/getAllWorkers')
+            .then(res => res.json())
+            .then(data => {
+              const tbody = document.querySelector("#workers-table tbody");
+              tbody.innerHTML = "";
+              data.forEach(w => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+            <td>${w.firstName}</td>
+            <td>${w.lastName}</td>
+            <td>${w.workerCode}</td>
+            <td>${w.age}</td>
+            <td>${w.backGroundYears}</td>
+            <td>${w.childrenNumber}</td>
+            <td>${w.gender}</td>
+            <td>${w.married ? "✅" : "❌"}</td>
+            <td><button onclick="deleteWorker('${w.workerCode}')">🗑 حذف</button></td>
+          `;
+                tbody.appendChild(tr);
+              });
+            });
+  }
+
+  function deleteWorker(workerCode) {
+    fetch(`/workerManaging/deleteWorker/${workerCode}`, { method: 'DELETE' })
+            .then(res => {
+              if (res.ok) {
+                alert("کارمند حذف شد");
+                loadWorkers();
+              } else {
+                alert("❌ خطا در حذف");
+              }
+            });
+  }
+
+  document.getElementById("add-worker-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const obj = Object.fromEntries(formData.entries());
+    obj.isMarried = obj.isMarried === "true";
+    obj.age = Number(obj.age);
+    obj.backGroundYears = Number(obj.backGroundYears);
+    obj.childrenNumber = Number(obj.childrenNumber);
+
+    fetch("/workerManaging/addNewWorker", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(obj)
+    })
+            .then(res => {
+              if (res.ok) {
+                alert("✅ کارمند اضافه شد");
+                this.reset();
+                loadWorkers();
+              } else {
+                alert("❌ خطا در افزودن کارمند");
+              }
+            });
+  });
+
+  loadWorkers();
+</script>
+
+</body>
+</html>
