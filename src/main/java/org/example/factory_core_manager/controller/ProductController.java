@@ -1,6 +1,7 @@
 package org.example.factory_core_manager.controller;
 
 
+import org.example.factory_core_manager.dto.SaveInventoryAmountPair;
 import org.example.factory_core_manager.dto.SaveProductDto;
 import org.example.factory_core_manager.entity.Product;
 import org.example.factory_core_manager.service.ProductService;
@@ -31,5 +32,15 @@ public class ProductController {
         productService.increaseStock(productName, amountToIncrease);
 
     }
+
+    @PostMapping("/addNewRecipe/{productName}")
+    public String addNewRecipe(@PathVariable String productName , @RequestBody SaveInventoryAmountPair inventoryAmountPair) {
+        this.productService.addToRecipe(productName, inventoryAmountPair);
+        return "recipe added successfully";
+    }
+
+
+
+
 
 }

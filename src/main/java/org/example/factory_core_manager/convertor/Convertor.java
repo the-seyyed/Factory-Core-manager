@@ -4,13 +4,10 @@ package org.example.factory_core_manager.convertor;
 import com.github.mfathi91.time.PersianDate;
 import org.example.factory_core_manager.dto.*;
 import org.example.factory_core_manager.entity.*;
-import org.hibernate.annotations.Comment;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Component
 public class Convertor {
@@ -94,6 +91,9 @@ public class Convertor {
 
     public Inventory saveInventoryDtoToInventory(SaveInventoryDto saveInventoryDto) {
         return modelMapper.map(saveInventoryDto, Inventory.class);
+    }
+    public GetInventory inventoryToGetAllInventories(Inventory inventory) {
+        return modelMapper.map(inventory, GetInventory.class);
     }
 
 
