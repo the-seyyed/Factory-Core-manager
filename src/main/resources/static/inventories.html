@@ -227,7 +227,7 @@
     hideStatus();
     tbody.innerHTML = `<tr><td colspan="4">در حال دریافت لیست…</td></tr>`;
 
-    fetch(`${BASE}/AllInventories`, { method: "GET" })
+    fetch(`${BASE}/get-allInventories`, { method: "GET" })
             .then(res => {
               if (!res.ok) return res.text().then(t => { throw new Error(t || "خطا در دریافت لیست"); });
               return res.json();

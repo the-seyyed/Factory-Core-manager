@@ -42,9 +42,7 @@ public class InventoryService {
     }
 
     public void decreaseStock(String inventoryName , long amountToDecrease) {
-        if (!this.checkIfInventoryNameExists(inventoryName)) {
-            throw new InventoryNotPersistedException("Inventory does not exist : " + inventoryName);
-        }
+
         boolean isNotIllegalToReduce = inventoryRepository.findInventoryByName(inventoryName).getFirst().getAmount() >= amountToDecrease;
         if(!isNotIllegalToReduce)
             throw new IllegalAmountToDecreaseInventoryException("not being able to reduce the inventory : " + inventoryName);
@@ -60,13 +58,25 @@ public class InventoryService {
         inventoryRepository.save(inventory);
 
     }
-
     public ArrayList<GetInventory> getAllInventories(){
-        ArrayList<GetInventory> allInventories = new ArrayList<>();
-        for (Inventory inventory : inventoryRepository.findAll()) {
-            allInventories.add(convertor.inventoryToGetAllInventories(inventory));
+        ArrayList<GetInventory> inventoryList = new ArrayList<>();
+        this.inventoryRepository.findAll().forEach(inventory -> {
+            inventoryList.add(this.convertor.inventoryToGetAllInventories(inventory));
+        });
+        return inventoryList;
+    }
+
+    public ArrayList<String> getAllInventoriesNames(){
+        ArrayList<String> inventoriesName = new ArrayList<>();
+        this.inventoryRepository.findAll().forEach(inventory -> inventoriesName.add(inventory.getName()));
+        return inventoriesName;
+    }
+
+    public Inventory getInventoryByName(String inventoryName){
+        if(!this.checkIfInventoryNameExists(inventoryName)){
+            throw new InventoryNotPersistedException("Inventory does not exist : " + inventoryName);
         }
-        return allInventories;
+        return this.inventoryRepository.getInventoryByName(inventoryName);
     }
 
 

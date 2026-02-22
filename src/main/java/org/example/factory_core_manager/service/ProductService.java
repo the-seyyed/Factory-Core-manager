@@ -2,7 +2,7 @@ package org.example.factory_core_manager.service;
 
 
 import org.example.factory_core_manager.convertor.Convertor;
-import org.example.factory_core_manager.dto.SaveInventoryAmountPair;
+import org.example.factory_core_manager.dto.SaveProductRecipe;
 import org.example.factory_core_manager.dto.SaveProductDto;
 import org.example.factory_core_manager.entity.Product;
 import org.example.factory_core_manager.exception.DuplicateProductNameException;
@@ -17,15 +17,15 @@ import java.util.ArrayList;
 public class ProductService {
 
 
-    private InventoryAmountPairService inventoryAmountPairService;
+
     private ProductRepository productRepository;
 
     private Convertor convertor;
 
     @Autowired
-    public ProductService(ProductRepository productRepository , InventoryAmountPairService inventoryAmountPairService) {
+    public ProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.inventoryAmountPairService = inventoryAmountPairService;
+
     }
 
     public void saveNewProduct(SaveProductDto saveProductDto) {
@@ -51,16 +51,19 @@ public class ProductService {
         productRepository.updateAmount(productName,productRepository.findProductAmount(productName)+ amountToIncrease);
 
     }
+    public ArrayList<String> getAllProductNames() {
+        ArrayList<String> productNames = new ArrayList<>();
+        productRepository.findAll().forEach(product -> productNames.add(product.getName()));
+        return productNames;
+    }
 
-    public void addToRecipe(String productName , SaveInventoryAmountPair inventoryAmountPair) {
 
+
+    public Product getProductByName(String productName) {
         if(!checkIfProductNameExists(productName)) {
             throw new ProductNotExistException("Product name does not exist : " + productName);
         }
-        Product product = this.productRepository.getProductByName(productName);
-        this.inventoryAmountPairService.save(product, inventoryAmountPair);
-
-
+        return this.productRepository.getProductByName(productName);
     }
 
 

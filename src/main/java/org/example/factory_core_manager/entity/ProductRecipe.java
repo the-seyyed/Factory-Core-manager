@@ -7,7 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class InventoryAmountPair {
+public class ProductRecipe {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

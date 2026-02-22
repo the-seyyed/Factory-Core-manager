@@ -32,9 +32,14 @@ public class InventoryController {
         this.inventoryService.editInventory(saveInventoryDto, inventoryName);
         return "inventory edited successfully";
     }
-    @GetMapping("/AllInventories")
-    public ArrayList<GetInventory> showAllInventories() {
+
+    @GetMapping("/get-allInventories")
+    public ArrayList<GetInventory> getAllInventories() {
         return this.inventoryService.getAllInventories();
+    }
+    @GetMapping("/get-inventoriesNames")
+    public ArrayList<String> showAllInventories() {
+        return this.inventoryService.getAllInventoriesNames();
     }
 
 

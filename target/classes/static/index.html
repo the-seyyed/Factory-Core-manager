@@ -199,6 +199,8 @@
   مدیریت موجودی‌ها
 </button>
 
+
+
 <!-- مودال ثبت تراکنش جدید -->
 <div id="transactionModal" style="display:none; position:fixed; top:10%; right:25%; width:50%; background:#fff; border:1px solid #ccc; border-radius:10px; padding:1.5rem; z-index:999; box-shadow:0 0 20px rgba(0,0,0,0.2)">
   <h3>➕ ثبت تراکنش جدید</h3>
@@ -768,7 +770,9 @@
       resultDiv.innerHTML = "❌ خطا در دریافت اطلاعات حضور.";
     }
   }
-
+  function goToRecipe() {
+    window.location.href = "/recipe.html";
+  }
 
 
 
@@ -780,6 +784,7 @@
 <br><br>
 <button class="edit-btn" onclick="location.href='/edit_workers.html'">✏️ ویرایش کارمندان</button>
 <button class="edit-btn" onclick="openPaymentModal()">⚙️ تنظیم درجه پرداخت</button>
+<button class="btn primary" onclick="goToRecipe()">📦 ایجاد Recipe</button>
 
 </body>
 </html>

@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 @Entity
 @Getter
@@ -20,7 +19,7 @@ public class Product {
 
     private long amount ;
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
-    private ArrayList<InventoryAmountPair> inventoriesWithAmount;
+    private ArrayList<ProductRecipe> inventoriesWithAmount;
     public Product() {
         this.inventoriesWithAmount = new ArrayList<>();
     }

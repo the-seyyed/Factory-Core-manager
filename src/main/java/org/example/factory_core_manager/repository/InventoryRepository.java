@@ -26,4 +26,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
 
     List<Inventory> findInventoryByName(String name);
+
+    Inventory getInventoryByName(String name);
 }
