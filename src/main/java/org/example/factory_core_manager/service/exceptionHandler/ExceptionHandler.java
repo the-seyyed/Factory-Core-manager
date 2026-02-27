@@ -124,6 +124,10 @@ public class ExceptionHandler {
     public ExceptionResponse productNotExist(ProductNotExistException productNotExistException) {
         return new ExceptionResponse(productNotExistException.getMessage() , LocalDateTime.now());
     }
+    @org.springframework.web.bind.annotation.ExceptionHandler(CustomerExistsException.class)
+    public ExceptionResponse customerExists(CustomerExistsException customerExistsException) {
+        return new ExceptionResponse(customerExistsException.getMessage() , LocalDateTime.now());
+    }
 
 
 }

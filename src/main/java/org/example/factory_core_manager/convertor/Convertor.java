@@ -96,6 +96,16 @@ public class Convertor {
         return modelMapper.map(inventory, GetInventory.class);
     }
 
+    public Product SaveProductDtoToProduct(SaveProductDto saveProductDto) {
+        return modelMapper.map(saveProductDto, Product.class);
+    }
+    public GetProduct productToGetProduct(Product product) {
+        return modelMapper.map(product, GetProduct.class);
+    }
+
+    public Customer saveCustomerToCustomer(SaveCustomer saveCustomer) {
+        return modelMapper.map(saveCustomer, Customer.class);
+    }
 
 
 
@@ -121,13 +131,6 @@ public class Convertor {
         convertor.profileToAllWorkerInfo(profile , allWorkerInfo);
         System.out.println(allWorkerInfo.isMarried());
 
-    }
-
-    public Product SaveProductDtoToProduct(SaveProductDto saveProductDto) {
-        return modelMapper.map(saveProductDto, Product.class);
-    }
-    public GetProduct productToGetProduct(Product product) {
-        return modelMapper.map(product, GetProduct.class);
     }
 
 
