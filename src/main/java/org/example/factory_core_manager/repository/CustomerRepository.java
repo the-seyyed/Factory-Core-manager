@@ -7,4 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
+    boolean existsCustomerByCustomerCode(String customerCode);
+
+    boolean existsCustomerByLastName(String lastName);
 }

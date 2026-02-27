@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>مدیریت مشتری‌ها</title>
+
+    <style>
+        body{
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 24px;
+            color:#111827;
+        }
+        .container{ max-width: 1000px; margin: 0 auto; }
+
+        .header{
+            background:#fff;
+            border-radius:14px;
+            padding:18px;
+            box-shadow:0 6px 16px rgba(0,0,0,0.06);
+            display:flex;
+            align-items:center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header h2{ margin:0; font-size:18px; font-weight:800; }
+
+        .btn{
+            border:none;
+            border-radius:10px;
+            padding:10px 14px;
+            cursor:pointer;
+            font-size:14px;
+            transition:0.15s;
+            white-space: nowrap;
+        }
+        .btn.primary{ background:#0ea5e9; color:#fff; }
+        .btn.gray{ background:#64748b; color:#fff; }
+        .btn.light{ background:#e2e8f0; color:#0f172a; }
+        .btn:hover{ opacity:0.92; transform: translateY(-1px); }
+
+        .card{
+            margin-top: 14px;
+            background:#fff;
+            border-radius:14px;
+            padding:18px;
+            box-shadow:0 6px 16px rgba(0,0,0,0.06);
+        }
+
+        label{
+            display:block;
+            font-size: 13px;
+            color:#334155;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        input{
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px 12px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.15s;
+            margin-bottom: 12px;
+        }
+        input:focus{
+            border-color:#0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
+        }
+
+        .grid{
+            display:grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media(max-width: 760px){
+            .grid{ grid-template-columns: 1fr; }
+        }
+
+        .status{
+            margin-top: 12px;
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            font-size: 13px;
+            line-height: 1.8;
+            display:none;
+            white-space: pre-wrap;
+        }
+        .status.ok{ border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.10); }
+        .status.err{ border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.10); }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        th, td{
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th{
+            background:#f1f5f9;
+            font-weight: 800;
+        }
+        tr:hover td{ background:#f8fafc; }
+
+        .muted{ color:#64748b; font-size: 12px; margin-top: 8px; }
+        .row-actions{ display:flex; justify-content:center; gap:8px; flex-wrap: wrap; }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header">
+        <h2>مدیریت مشتری‌ها</h2>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn light" onclick="refreshCustomers()">🔄 رفرش مشتری‌ها</button>
+            <button class="btn gray" onclick="goHome()">🏠 صفحه اصلی</button>
+        </div>
+    </div>
+
+    <!-- فرم ثبت مشتری -->
+    <div class="card">
+        <h3 style="margin:0 0 10px;">ثبت مشتری جدید</h3>
+
+        <div class="grid">
+            <div>
+                <label for="firstName">نام</label>
+                <input id="firstName" type="text">
+            </div>
+
+            <div>
+                <label for="lastName">نام خانوادگی</label>
+                <input id="lastName" type="text" >
+            </div>
+
+            <div>
+                <label for="phoneNumber">شماره تماس</label>
+                <input id="phoneNumber" type="text" inputmode="tel">
+            </div>
+
+            <div>
+                <label for="customerCode">کد مشتری</label>
+                <input id="customerCode" type="text">
+            </div>
+        </div>
+
+        <button id="submitBtn" class="btn primary" onclick="addCustomer()">➕ ثبت مشتری</button>
+
+        <div id="status" class="status"></div>
+        <div class="muted">
+            لیست مشتری‌ها به صورت خودکار هر 10 ثانیه رفرش می‌شود.
+        </div>
+    </div>
+
+    <!-- جدول مشتری‌ها -->
+    <div class="card">
+        <h3 style="margin:0 0 10px;">لیست مشتری‌ها</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>نام</th>
+                <th>نام خانوادگی</th>
+                <th>شماره تماس</th>
+                <th>کد مشتری</th>
+            </tr>
+            </thead>
+            <tbody id="customersBody">
+            <tr><td colspan="5">در حال دریافت لیست…</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    const BASE = "/customer-managing"; // اگر controller prefix داره اینجا بذار
+
+    // polling
+    const POLL_MS = 10000;
+    let pollTimer = null;
+
+    function goHome(){
+        window.location.href = "/";
+    }
+
+    function showStatus(msg, isError){
+        const el = document.getElementById("status");
+        el.style.display = "block";
+        el.classList.remove("ok","err");
+        el.classList.add(isError ? "err" : "ok");
+        el.textContent = msg;
+    }
+
+    function hideStatus(){
+        const el = document.getElementById("status");
+        el.style.display = "none";
+        el.textContent = "";
+        el.classList.remove("ok","err");
+    }
+
+    function validatePhone(phone){
+        return /^09\d{9}$/.test(phone);
+    }
+
+    function escapeHtml(str){
+        return String(str ?? "")
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+    }
+
+    // ====== ثبت مشتری ======
+    async function addCustomer(){
+        hideStatus();
+
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        const phoneNumber = document.getElementById("phoneNumber").value.trim();
+        const customerCode = document.getElementById("customerCode").value.trim();
+
+        if(!firstName){ showStatus("نام نمی‌تواند خالی باشد.", true); return; }
+        if(!lastName){ showStatus("نام خانوادگی نمی‌تواند خالی باشد.", true); return; }
+        if(!phoneNumber){ showStatus("شماره تماس نمی‌تواند خالی باشد.", true); return; }
+        if(!validatePhone(phoneNumber)){
+            showStatus("فرمت شماره تماس درست نیست. نمونه: 09123456789", true);
+            return;
+        }
+        if(!customerCode){ showStatus("کد مشتری نمی‌تواند خالی باشد.", true); return; }
+
+        const payload = { firstName, lastName, phoneNumber, customerCode };
+
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.textContent = "در حال ثبت…";
+
+        try{
+            const res = await fetch(`${BASE}/add-customer`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if(!res.ok){
+                const t = await res.text();
+                throw new Error(t || "خطا در ثبت مشتری");
+            }
+
+            showStatus("✅ مشتری با موفقیت ثبت شد.", false);
+
+            document.getElementById("firstName").value = "";
+            document.getElementById("lastName").value = "";
+            document.getElementById("phoneNumber").value = "";
+            document.getElementById("customerCode").value = "";
+
+            // رفرش لیست بعد از ثبت
+            await refreshCustomers();
+
+        }catch(e){
+            showStatus("❌ " + (e?.message || e), true);
+        }finally{
+            btn.disabled = false;
+            btn.textContent = "➕ ثبت مشتری";
+        }
+    }
+
+    // ====== دریافت مشتری‌ها ======
+    async function refreshCustomers(){
+        const tbody = document.getElementById("customersBody");
+        tbody.innerHTML = `<tr><td colspan="5">در حال دریافت لیست…</td></tr>`;
+
+        try{
+            const res = await fetch(`${BASE}/get-customers`, { method: "GET" });
+            if(!res.ok){
+                const t = await res.text();
+                throw new Error(t || "خطا در دریافت مشتری‌ها");
+            }
+
+            const data = await res.json();
+
+            if(!Array.isArray(data) || data.length === 0){
+                tbody.innerHTML = `<tr><td colspan="5">مشتری‌ای ثبت نشده است.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = "";
+            data.forEach((c, i) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${escapeHtml(c.firstName)}</td>
+          <td>${escapeHtml(c.lastName)}</td>
+          <td>${escapeHtml(c.phoneNumber)}</td>
+          <td>${escapeHtml(c.customerCode)}</td>
+        `;
+                tbody.appendChild(tr);
+            });
+
+        }catch(e){
+            tbody.innerHTML = `<tr><td colspan="5">❌ خطا در ارتباط با سرور</td></tr>`;
+        }
+    }
+
+    function startPolling(){
+        if(pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(() => {
+            // async refresh
+            refreshCustomers();
+        }, POLL_MS);
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+        await refreshCustomers();
+        startPolling();
+    });
+
+    // وقتی tab مخفی شد، polling رو قطع کن (بهینه)
+    document.addEventListener("visibilitychange", () => {
+        if(document.hidden){
+            if(pollTimer) clearInterval(pollTimer);
+            pollTimer = null;
+        } else {
+            refreshCustomers();
+            startPolling();
+        }
+    });
+</script>
+</body>
+</html>
