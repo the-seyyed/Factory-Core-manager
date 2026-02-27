@@ -106,6 +106,9 @@ public class Convertor {
     public Customer saveCustomerToCustomer(SaveCustomer saveCustomer) {
         return modelMapper.map(saveCustomer, Customer.class);
     }
+    public GetCustomer customerToGetCustomer(Customer customer) {
+        return modelMapper.map(customer, GetCustomer.class);
+    }
 
 
 
