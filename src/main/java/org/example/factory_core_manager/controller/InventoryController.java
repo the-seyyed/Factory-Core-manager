@@ -5,7 +5,6 @@ import org.example.factory_core_manager.dto.GetInventory;
 import org.example.factory_core_manager.dto.SaveInventoryDto;
 import org.example.factory_core_manager.service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class InventoryController {
 
     @PostMapping("/addNewInventory")
     public void addNewInventory(@RequestBody SaveInventoryDto saveInventoryDto) {
-        this.inventoryService.saveOrUpdateInventory(saveInventoryDto);
+        this.inventoryService.saveInventory(saveInventoryDto);
 //        return "inventory added or updated successfully";
     }
 

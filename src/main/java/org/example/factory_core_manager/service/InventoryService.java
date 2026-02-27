@@ -29,13 +29,9 @@ public class InventoryService {
         this.convertor = convertor;
     }
 
-    public void saveOrUpdateInventory(SaveInventoryDto saveInventoryDto){
+    public void saveInventory(SaveInventoryDto saveInventoryDto){
 
         Inventory inventory = convertor.saveInventoryDtoToInventory(saveInventoryDto);
-
-        if(checkIfInventoryNameExists(inventory.getName())) {
-            increaseStock(inventory.getName() , inventory.getAmount());
-        }
 
         inventoryRepository.save(inventory);
 

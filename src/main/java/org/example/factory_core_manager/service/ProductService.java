@@ -2,7 +2,7 @@ package org.example.factory_core_manager.service;
 
 
 import org.example.factory_core_manager.convertor.Convertor;
-import org.example.factory_core_manager.dto.SaveProductRecipe;
+import org.example.factory_core_manager.dto.GetProduct;
 import org.example.factory_core_manager.dto.SaveProductDto;
 import org.example.factory_core_manager.entity.Product;
 import org.example.factory_core_manager.exception.DuplicateProductNameException;
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -23,12 +24,13 @@ public class ProductService {
     private Convertor convertor;
 
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository , Convertor convertor) {
         this.productRepository = productRepository;
+        this.convertor = convertor;
 
     }
 
-    public void saveNewProduct(SaveProductDto saveProductDto) {
+    public void saveProduct(SaveProductDto saveProductDto) {
 
         if(checkIfProductNameExists(saveProductDto.getName())) {
             throw new DuplicateProductNameException("Product name already exists : " + saveProductDto.getName());
@@ -47,7 +49,9 @@ public class ProductService {
     }
 
     public void increaseStock(String productName , long amountToIncrease) {
-
+        if(!checkIfProductNameExists(productName)) {
+            throw new ProductNotExistException(productName);
+        }
         productRepository.updateAmount(productName,productRepository.findProductAmount(productName)+ amountToIncrease);
 
     }
@@ -65,6 +69,20 @@ public class ProductService {
         }
         return this.productRepository.getProductByName(productName);
     }
+
+
+    public List<GetProduct> getAllProducts() {
+        List<GetProduct> products = new ArrayList<>();
+        productRepository.findAll().forEach(product -> {
+            products.add(convertor.productToGetProduct(product));
+        });
+        return products;
+    }
+
+
+
+
+
 
 
 

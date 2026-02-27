@@ -126,6 +126,9 @@ public class Convertor {
     public Product SaveProductDtoToProduct(SaveProductDto saveProductDto) {
         return modelMapper.map(saveProductDto, Product.class);
     }
+    public GetProduct productToGetProduct(Product product) {
+        return modelMapper.map(product, GetProduct.class);
+    }
 
 
 
